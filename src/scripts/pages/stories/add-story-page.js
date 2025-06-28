@@ -5,6 +5,8 @@ import L from 'leaflet';
 class AddStoryPage {
   #map = null;
   #marker = null;
+  #video = null; // Added for camera stream
+  #stream = null; // Added for camera stream
 
   async render() {
     return `
@@ -13,21 +15,25 @@ class AddStoryPage {
         <form id="add-story-form">
           <div class="form-group">
             <label for="description">Description:</label>
-            <textarea id="description" name="description" required></textarea>
+            <textarea id="description" name="description" required aria-label="Story description"></textarea>
           </div>
           <div class="form-group">
             <label for="photo">Photo:</label>
-            <input type="file" id="photo" name="photo" accept="image/*" required>
+            <input type="file" id="photo" name="photo" accept="image/*" required aria-label="Upload photo from device">
+            <button type="button" id="open-camera-button" aria-label="Take photo with camera">Take Photo with Camera</button>
+            <video id="camera-feed" autoplay style="display: none; width: 100%; max-width: 400px; margin-top: 10px;" aria-label="Camera feed"></video>
+            <button type="button" id="capture-photo-button" style="display: none; margin-top: 10px;" aria-label="Capture photo from camera">Capture Photo</button>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
           </div>
           <div class="form-group">
             <label for="lat">Latitude (click on map to select or drag marker):</label>
-            <input type="number" step="any" id="lat" name="lat" readonly>
+            <input type="number" step="any" id="lat" name="lat" readonly aria-label="Latitude coordinate">
           </div>
           <div class="form-group">
             <label for="lon">Longitude (click on map to select or drag marker):</label>
-            <input type="number" step="any" id="lon" name="lon" readonly>
+            <input type="number" step="any" id="lon" name="lon" readonly aria-label="Longitude coordinate">
           </div>
-          <div id="map-add-story" class="map-container"></div>
+          <div id="map-add-story" class="map-container" role="img" aria-label="Map for selecting location"></div>
           <button type="submit" id="add-story-button">Add Story</button>
           <button type="button" id="add-story-guest-button">Add as Guest</button>
         </form>
@@ -40,8 +46,19 @@ class AddStoryPage {
     const addStoryGuestButton = document.querySelector('#add-story-guest-button');
     const latInput = document.querySelector('#lat');
     const lonInput = document.querySelector('#lon');
+    const openCameraButton = document.querySelector('#open-camera-button');
+    const capturePhotoButton = document.querySelector('#capture-photo-button');
+    this.#video = document.querySelector('#camera-feed');
 
     this.#initializeMap(latInput, lonInput);
+
+    openCameraButton.addEventListener('click', async () => {
+      await this.#openCamera();
+    });
+
+    capturePhotoButton.addEventListener('click', () => {
+      this.#capturePhoto();
+    });
 
     addStoryForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -67,6 +84,7 @@ class AddStoryPage {
 
     this.#marker = L.marker([defaultLat, defaultLon], {
       draggable: true,
+      alt: 'Location marker' // Added alt text for marker
     }).addTo(this.#map);
 
     latInput.value = defaultLat.toFixed(6);
@@ -89,14 +107,59 @@ class AddStoryPage {
     });
   }
 
+  async #openCamera() {
+    try {
+      this.#stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      this.#video.srcObject = this.#stream;
+      this.#video.style.display = 'block';
+      document.querySelector('#capture-photo-button').style.display = 'inline-block';
+      document.querySelector('#photo').style.display = 'none'; // Hide file input when camera is open
+      document.querySelector('#open-camera-button').style.display = 'none'; // Hide open camera button
+    } catch (error) {
+      alert('Could not access camera. Please ensure you have a camera and have granted permission.');
+      console.error('Error accessing camera:', error);
+    }
+  }
+
+  #capturePhoto() {
+    const canvas = document.querySelector('#camera-canvas');
+    canvas.width = this.#video.videoWidth;
+    canvas.height = this.#video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(this.#video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas content to a Blob and then to a File
+    canvas.toBlob((blob) => {
+      const photoFile = new File([blob], `captured-photo-${Date.now()}.png`, { type: 'image/png' });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(photoFile);
+      document.querySelector('#photo').files = dataTransfer.files;
+
+      this.#stopCameraStream();
+    }, 'image/png');
+  }
+
+  #stopCameraStream() {
+    if (this.#stream) {
+      this.#stream.getTracks().forEach(track => track.stop());
+      this.#stream = null;
+      this.#video.srcObject = null;
+      this.#video.style.display = 'none';
+      document.querySelector('#capture-photo-button').style.display = 'none';
+      document.querySelector('#photo').style.display = 'block'; // Show file input again
+      document.querySelector('#open-camera-button').style.display = 'inline-block'; // Show open camera button again
+    }
+  }
+
   async #handleAddStory(asGuest) {
     const description = document.querySelector('#description').value;
-    const photo = document.querySelector('#photo').files[0];
+    const photoInput = document.querySelector('#photo');
+    const photo = photoInput.files[0];
     const lat = document.querySelector('#lat').value ? parseFloat(document.querySelector('#lat').value) : undefined;
     const lon = document.querySelector('#lon').value ? parseFloat(document.querySelector('#lon').value) : undefined;
 
     if (!description || !photo) {
-      alert('Please fill in description and upload a photo.');
+      alert('Please fill in description and upload or take a photo.');
       return;
     }
 
@@ -108,6 +171,7 @@ class AddStoryPage {
         await addNewStory({ description, photo, lat, lon });
         alert('Story added successfully!');
       }
+      this.#stopCameraStream(); // Ensure camera stream is stopped after submission
       window.location.hash = '#/';
     } catch (error) {
       alert(`Failed to add story: ${error.message}`);

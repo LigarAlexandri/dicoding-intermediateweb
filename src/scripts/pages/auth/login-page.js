@@ -9,11 +9,11 @@ class LoginPage {
         <form id="login-form">
           <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" required aria-label="Email address">
           </div>
           <div class="form-group">
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" required aria-label="Password">
           </div>
           <button type="submit">Login</button>
         </form>

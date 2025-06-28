@@ -25,7 +25,8 @@ class HomePage {
 
       storiesListElement.innerHTML = stories.map(story => `
         <article class="story-item">
-          <img class="story-photo" src="${story.photoUrl}" alt="${story.description}">
+          <!-- Ensure alt attribute is descriptive -->
+          <img class="story-photo" src="${story.photoUrl}" alt="Photo by ${story.name}: ${story.description}">
           <div class="story-info">
             <h2 class="story-name">${story.name}</h2>
             <p class="story-date">${showFormattedDate(story.createdAt)}</p>

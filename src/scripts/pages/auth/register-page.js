@@ -9,15 +9,15 @@ class RegisterPage {
         <form id="register-form">
           <div class="form-group">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" required aria-label="Your name">
           </div>
           <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" required aria-label="Your email address">
           </div>
           <div class="form-group">
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required minlength="8">
+            <input type="password" id="password" name="password" required minlength="8" aria-label="Choose a password">
           </div>
           <button type="submit">Register</button>
         </form>

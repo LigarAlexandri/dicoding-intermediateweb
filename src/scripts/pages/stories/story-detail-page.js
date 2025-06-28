@@ -14,6 +14,7 @@ class StoryDetailPage {
         <h1 id="story-title"></h1>
         <p class="story-owner" id="story-owner"></p>
         <p class="story-date" id="story-date"></p>
+        <!-- Ensure alt attribute is descriptive -->
         <img id="story-photo" src="" alt="Story Photo" style="max-width: 100%; height: auto; margin-top: 20px;">
         <p id="story-description" style="margin-top: 20px;"></p>
         <p id="story-location" style="margin-top: 10px; font-style: italic;"></p>
@@ -48,7 +49,9 @@ class StoryDetailPage {
     document.querySelector('#story-title').textContent = `Story by ${this.#story.name}`;
     document.querySelector('#story-owner').textContent = `Posted by: ${this.#story.name}`;
     document.querySelector('#story-date').textContent = `On: ${showFormattedDate(this.#story.createdAt)}`;
+    // Update alt text to be more descriptive
     document.querySelector('#story-photo').src = this.#story.photoUrl;
+    document.querySelector('#story-photo').alt = `Photo for story: ${this.#story.description}`; 
     document.querySelector('#story-description').textContent = this.#story.description;
 
     if (this.#story.lat && this.#story.lon) {

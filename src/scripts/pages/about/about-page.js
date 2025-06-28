@@ -2,12 +2,14 @@ export default class AboutPage {
   async render() {
     return `
       <section class="container">
-        <h1>About Page</h1>
+        <h1>About Dicoding Story App</h1>
+        <p>This app is made by **ligaralexandri**.</p>
+        <p>It is a Dicoding Story App that is the first submission of the Web Development Intermediate course by Dicoding.</p>
       </section>
-    `;
+    `
   }
 
   async afterRender() {
-    // Do your job here
+    // No specific actions needed after rendering for this page.
   }
 }
