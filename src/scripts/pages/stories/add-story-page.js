@@ -74,17 +74,39 @@ class AddStoryPage {
     const defaultLat = -6.2088; // Example: Jakarta latitude
     const defaultLon = 106.8456; // Example: Jakarta longitude
 
-    this.#map = L.map('map-add-story').setView([defaultLat, defaultLon], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // 1. Definisikan beberapa tile layer yang berbeda
+    const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(this.#map);
+    });
+
+    const openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+    });
+
+    const cartoDBDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    });
+
+    // 2. Buat objek yang berisi base maps
+    const baseMaps = {
+        "Streets": openStreetMap,
+        "Topographic": openTopoMap,
+        "Dark Mode": cartoDBDark
+    };
+
+    // 3. Inisialisasi peta dengan layer default
+    this.#map = L.map('map-add-story', {
+        layers: [openStreetMap] // Atur layer default di sini
+    }).setView([defaultLat, defaultLon], 13);
+
+    // 4. Tambahkan layer control ke peta
+    L.control.layers(baseMaps).addTo(this.#map);
 
     this.#map.invalidateSize();
 
     this.#marker = L.marker([defaultLat, defaultLon], {
       draggable: true,
-      alt: 'Location marker' // Added alt text for marker
+      alt: 'Location marker'
     }).addTo(this.#map);
 
     latInput.value = defaultLat.toFixed(6);

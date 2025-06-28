@@ -95,6 +95,7 @@ header {
   cursor: pointer;
 }
 
+/* === PERBAIKAN DI SINI === */
 .navigation-drawer {
   min-height: 100vh;
   width: 250px;
@@ -102,16 +103,18 @@ header {
   background-color: var(--card-background);
   position: fixed;
   inset-block-start: 0;
-  inset-inline-start: -250px;
+  inset-inline-start: 0; /* Pastikan ini 0 */
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transform: translateX(-100%); /* Sembunyikan dengan transform */
   transition: transform 350ms ease-in-out;
   z-index: 9999;
-  transform: translateX(-100%);
 }
 
 .navigation-drawer.open {
-  transform: translateX(0);
+  transform: translateX(0); /* Tampilkan dengan transform */
 }
+/* === AKHIR PERBAIKAN === */
+
 
 /* Main Content */
 .main-content {
