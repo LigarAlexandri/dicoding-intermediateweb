@@ -46,19 +46,18 @@ class StoryDetailPage {
       return;
     }
 
-    document.querySelector('#story-title').textContent = `Story by ${this.#story.name}`;
-    document.querySelector('#story-owner').textContent = `Posted by: ${this.#story.name}`;
-    document.querySelector('#story-date').textContent = `On: ${showFormattedDate(this.#story.createdAt)}`;
+    document.querySelector('#story-title').textContent = this.#story.name;
+    document.querySelector('#story-owner').innerHTML = `<i class="fa-solid fa-user fa-fw"></i> Posted by: <strong>${this.#story.name}</strong>`;
+    document.querySelector('#story-date').innerHTML = `<i class="fa-solid fa-calendar-alt fa-fw"></i> On: ${showFormattedDate(this.#story.createdAt)}`;
     // Update alt text to be more descriptive
     document.querySelector('#story-photo').src = this.#story.photoUrl;
     document.querySelector('#story-photo').alt = `Photo for story: ${this.#story.description}`; 
     document.querySelector('#story-description').textContent = this.#story.description;
 
     if (this.#story.lat && this.#story.lon) {
-      document.querySelector('#story-location').textContent = `Location: Lat ${this.#story.lat}, Lon ${this.#story.lon}`;
-      document.querySelector('#map-story-detail').style.display = 'block';
+document.querySelector('#story-location').innerHTML = `<i class="fa-solid fa-map-marker-alt fa-fw"></i> Location: Lat ${this.#story.lat}, Lon ${this.#story.lon}`;      document.querySelector('#map-story-detail').style.display = 'block';
     } else {
-      document.querySelector('#story-location').textContent = 'Location: Not provided';
+      document.querySelector('#story-location').innerHTML = `<i class="fa-solid fa-location-slash fa-fw"></i> Location: Not provided`;
       document.querySelector('#map-story-detail').style.display = 'none';
     }
   }

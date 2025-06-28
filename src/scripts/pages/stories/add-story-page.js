@@ -14,28 +14,28 @@ class AddStoryPage {
         <h1>Add New Story</h1>
         <form id="add-story-form">
           <div class="form-group">
-            <label for="description">Description:</label>
+            <label for="description"><i class="fa-solid fa-comment-dots fa-fw"></i> Description:</label>
             <textarea id="description" name="description" required aria-label="Story description"></textarea>
           </div>
           <div class="form-group">
-            <label for="photo">Photo:</label>
+            <label for="photo"><i class="fa-solid fa-image fa-fw"></i> Photo:</label>
             <input type="file" id="photo" name="photo" accept="image/*" required aria-label="Upload photo from device">
-            <button type="button" id="open-camera-button" aria-label="Take photo with camera">Take Photo with Camera</button>
+            <button type="button" id="open-camera-button" aria-label="Take photo with camera"><i class="fa-solid fa-camera"></i> Take Photo</button>
             <video id="camera-feed" autoplay style="display: none; width: 100%; max-width: 400px; margin-top: 10px;" aria-label="Camera feed"></video>
-            <button type="button" id="capture-photo-button" style="display: none; margin-top: 10px;" aria-label="Capture photo from camera">Capture Photo</button>
+            <button type="button" id="capture-photo-button" style="display: none; margin-top: 10px;" aria-label="Capture photo from camera"><i class="fa-solid fa-circle-dot"></i> Capture Photo</button>
             <canvas id="camera-canvas" style="display: none;"></canvas>
           </div>
           <div class="form-group">
-            <label for="lat">Latitude (click on map to select or drag marker):</label>
+            <label for="lat"><i class="fa-solid fa-map-pin fa-fw"></i> Latitude:</label>
             <input type="number" step="any" id="lat" name="lat" readonly aria-label="Latitude coordinate">
           </div>
           <div class="form-group">
-            <label for="lon">Longitude (click on map to select or drag marker):</label>
+            <label for="lon"><i class="fa-solid fa-map-pin fa-fw"></i> Longitude:</label>
             <input type="number" step="any" id="lon" name="lon" readonly aria-label="Longitude coordinate">
           </div>
           <div id="map-add-story" class="map-container" role="img" aria-label="Map for selecting location"></div>
-          <button type="submit" id="add-story-button">Add Story</button>
-          <button type="button" id="add-story-guest-button">Add as Guest</button>
+          <button type="submit" id="add-story-button"><i class="fa-solid fa-paper-plane"></i> Add Story</button>
+          <button type="button" id="add-story-guest-button"><i class="fa-solid fa-user-secret"></i> Add as Guest</button>
         </form>
       </section>
     `;

@@ -25,13 +25,16 @@ class HomePage {
 
       storiesListElement.innerHTML = stories.map(story => `
         <article class="story-item">
-          <!-- Ensure alt attribute is descriptive -->
           <img class="story-photo" src="${story.photoUrl}" alt="Photo by ${story.name}: ${story.description}">
           <div class="story-info">
             <h2 class="story-name">${story.name}</h2>
-            <p class="story-date">${showFormattedDate(story.createdAt)}</p>
-            <p class="story-description">${story.description.substring(0, 100)}...</p>
-            <a href="#/stories/${story.id}" class="story-detail-link">Read More</a>
+            <p class="story-meta">
+              <i class="fa-solid fa-calendar-alt fa-fw"></i> ${showFormattedDate(story.createdAt)}
+            </p>
+            <p class="story-description">${story.description.substring(0, 150)}...</p>
+            <a href="#/stories/${story.id}" class="story-detail-link">
+              Read More <i class="fa-solid fa-arrow-right"></i>
+            </a>
           </div>
         </article>
       `).join('');
