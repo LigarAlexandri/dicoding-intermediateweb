@@ -1,4 +1,3 @@
-// src/scripts/pages/auth/register-page.js
 import { register } from '../../data/api';
 
 class RegisterPage {

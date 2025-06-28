@@ -1,4 +1,3 @@
-// src/scripts/pages/stories/story-detail-page.js
 import { getStoryDetail } from '../../data/api';
 import { parseActivePathname } from '../../routes/url-parser';
 import { showFormattedDate } from '../../utils';

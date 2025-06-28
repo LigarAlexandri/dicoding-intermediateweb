@@ -1,4 +1,3 @@
-// src/scripts/pages/home/home-page.js
 import { getAllStories } from '../../data/api';
 import { showFormattedDate } from '../../utils';
 

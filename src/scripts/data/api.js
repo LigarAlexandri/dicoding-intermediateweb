@@ -1,4 +1,3 @@
-// src/scripts/data/api.js
 import CONFIG from '../config';
 
 const ENDPOINTS = {

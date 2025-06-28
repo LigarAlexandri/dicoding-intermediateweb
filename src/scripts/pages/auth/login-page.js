@@ -1,4 +1,3 @@
-// src/scripts/pages/auth/login-page.js
 import { login } from '../../data/api';
 
 class LoginPage {

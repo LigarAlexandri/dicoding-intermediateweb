@@ -10,6 +10,5 @@ export default class AboutPage {
   }
 
   async afterRender() {
-    // No specific actions needed after rendering for this page.
   }
 }
