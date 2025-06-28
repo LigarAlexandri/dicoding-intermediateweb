@@ -246,3 +246,24 @@ button[type="button"]:hover {
 .leaflet-container img {
   max-width: none !important;
 }
+
+/* Styles for skip-link - moved from index.html */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  /* Changed from left: 0; to center it */
+  left: 50%;
+  transform: translateX(-50%); /* Centers the element based on its own width */
+  transform: translateY(50%); /* Centers the element based on its own width */
+  background-color: #007bff;
+  color: white;
+  padding: 8px;
+  z-index: 9999;
+  text-decoration: none;
+  transition: top 0.3s ease-in-out; /* Smooth transition for visibility */
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid red; /* Basic red outline */
+  box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.7); /* Shining red glow */
+}
