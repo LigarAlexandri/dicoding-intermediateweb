@@ -1,6 +1,14 @@
-import { register } from '../../data/api';
+// src/scripts/pages/auth/register-page.js
+import * as api from '../../data/api';
+import RegisterPresenter from './register-presenter';
 
 class RegisterPage {
+  #presenter;
+
+  constructor() {
+    // Constructor is kept empty.
+  }
+
   async render() {
     return `
       <section class="container">
@@ -26,21 +34,29 @@ class RegisterPage {
   }
 
   async afterRender() {
+    // Presenter is instantiated here.
+    this.#presenter = new RegisterPresenter({
+      view: this,
+      model: api,
+    });
+
     const registerForm = document.querySelector('#register-form');
-    registerForm.addEventListener('submit', async (event) => {
+    registerForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const name = document.querySelector('#name').value;
       const email = document.querySelector('#email').value;
       const password = document.querySelector('#password').value;
-
-      try {
-        await register({ name, email, password });
-        alert('Registration successful! Please login.');
-        window.location.hash = '#/login';
-      } catch (error) {
-        alert(`Registration failed: ${error.message}`);
-      }
+      this.#presenter.register({ name, email, password });
     });
+  }
+
+  onRegisterSuccess() {
+    alert('Registration successful! Please login.');
+    window.location.hash = '#/login';
+  }
+
+  onRegisterFailure(message) {
+    alert(`Registration failed: ${message}`);
   }
 }
 

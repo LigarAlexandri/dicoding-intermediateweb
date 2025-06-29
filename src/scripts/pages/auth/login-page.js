@@ -1,6 +1,14 @@
-import { login } from '../../data/api';
+// src/scripts/pages/auth/login-page.js
+import * as api from '../../data/api';
+import LoginPresenter from './login-presenter';
 
 class LoginPage {
+  #presenter;
+
+  constructor() {
+    // Constructor is kept empty.
+  }
+
   async render() {
     return `
       <section class="container">
@@ -22,20 +30,28 @@ class LoginPage {
   }
 
   async afterRender() {
+    // Presenter is instantiated here.
+    this.#presenter = new LoginPresenter({
+      view: this,
+      model: api,
+    });
+
     const loginForm = document.querySelector('#login-form');
-    loginForm.addEventListener('submit', async (event) => {
+    loginForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const email = document.querySelector('#email').value;
       const password = document.querySelector('#password').value;
-
-      try {
-        const loginResult = await login({ email, password });
-        alert(`Welcome, ${loginResult.name}!`);
-        window.location.hash = '#/';
-      } catch (error) {
-        alert(`Login failed: ${error.message}`);
-      }
+      this.#presenter.login({ email, password });
     });
+  }
+
+  onLoginSuccess(loginResult) {
+    alert(`Welcome, ${loginResult.name}!`);
+    window.location.hash = '#/';
+  }
+
+  onLoginFailure(message) {
+    alert(`Login failed: ${message}`);
   }
 }
 

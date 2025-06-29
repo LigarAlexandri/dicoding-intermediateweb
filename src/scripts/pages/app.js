@@ -63,7 +63,7 @@ class App {
 
   async renderPage() {
     const url = getActiveRoute();
-    const page = routes[url];
+    const page = routes[url]();
 
     const requiresAuth = ['/add-story'].includes(url) || url.startsWith('/stories/');
     const token = localStorage.getItem('token');

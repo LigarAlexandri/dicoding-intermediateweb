@@ -1,12 +1,16 @@
 // src/scripts/pages/stories/add-story-page.js
-import { addNewStory, addNewStoryGuest } from '../../data/api';
+import * as api from '../../data/api';
+import AddStoryPresenter from './add-story-presenter';
 import L from 'leaflet';
 
 class AddStoryPage {
   #map = null;
   #marker = null;
-  #video = null; // Added for camera stream
-  #stream = null; // Added for camera stream
+  #video = null;
+  #stream = null;
+  #presenter;
+
+  constructor() {}
 
   async render() {
     return `
@@ -42,6 +46,11 @@ class AddStoryPage {
   }
 
   async afterRender() {
+    this.#presenter = new AddStoryPresenter({
+      view: this,
+      model: api,
+    });
+
     const addStoryForm = document.querySelector('#add-story-form');
     const addStoryGuestButton = document.querySelector('#add-story-guest-button');
     const latInput = document.querySelector('#lat');
@@ -52,29 +61,47 @@ class AddStoryPage {
 
     this.#initializeMap(latInput, lonInput);
 
-    openCameraButton.addEventListener('click', async () => {
-      await this.#openCamera();
-    });
+    openCameraButton.addEventListener('click', () => this.#openCamera());
+    capturePhotoButton.addEventListener('click', () => this.#capturePhoto());
 
-    capturePhotoButton.addEventListener('click', () => {
-      this.#capturePhoto();
-    });
-
-    addStoryForm.addEventListener('submit', async (event) => {
+    addStoryForm.addEventListener('submit', (event) => {
       event.preventDefault();
-      await this.#handleAddStory(false);
+      this.#handleAddStory(false);
     });
 
-    addStoryGuestButton.addEventListener('click', async () => {
-      await this.#handleAddStory(true);
-    });
+    addStoryGuestButton.addEventListener('click', () => this.#handleAddStory(true));
+  }
+
+  #handleAddStory(asGuest) {
+    const description = document.querySelector('#description').value;
+    const photoInput = document.querySelector('#photo');
+    const photo = photoInput.files[0];
+    const lat = document.querySelector('#lat').value ? parseFloat(document.querySelector('#lat').value) : undefined;
+    const lon = document.querySelector('#lon').value ? parseFloat(document.querySelector('#lon').value) : undefined;
+
+    if (!description || !photo) {
+      alert('Please fill in description and upload or take a photo.');
+      return;
+    }
+
+    this.#presenter.addStory({ description, photo, lat, lon }, asGuest);
+  }
+
+  onAddStorySuccess(asGuest) {
+    const message = asGuest ? 'Story added as guest successfully!' : 'Story added successfully!';
+    alert(message);
+    this.#stopCameraStream();
+    window.location.hash = '#/';
+  }
+
+  onAddStoryFailure(message) {
+    alert(`Failed to add story: ${message}`);
   }
 
   #initializeMap(latInput, lonInput) {
-    const defaultLat = -6.2088; // Example: Jakarta latitude
-    const defaultLon = 106.8456; // Example: Jakarta longitude
+    const defaultLat = -8.1689; // Jember latitude
+    const defaultLon = 113.7022; // Jember longitude
 
-    // 1. Definisikan beberapa tile layer yang berbeda
     const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
@@ -87,19 +114,16 @@ class AddStoryPage {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     });
 
-    // 2. Buat objek yang berisi base maps
     const baseMaps = {
         "Streets": openStreetMap,
         "Topographic": openTopoMap,
         "Dark Mode": cartoDBDark
     };
 
-    // 3. Inisialisasi peta dengan layer default
     this.#map = L.map('map-add-story', {
-        layers: [openStreetMap] // Atur layer default di sini
+        layers: [openStreetMap]
     }).setView([defaultLat, defaultLon], 13);
 
-    // 4. Tambahkan layer control ke peta
     L.control.layers(baseMaps).addTo(this.#map);
 
     this.#map.invalidateSize();
@@ -111,7 +135,7 @@ class AddStoryPage {
 
     latInput.value = defaultLat.toFixed(6);
     lonInput.value = defaultLon.toFixed(6);
-    this.#marker.bindPopup(`Lat: ${defaultLat.toFixed(6)}, Lon: ${defaultLon.toFixed(6)}`).openPopup();
+    this.#marker.bindPopup(`You are here: Jember`).openPopup();
 
     this.#map.on('click', (e) => {
       const { lat, lng } = e.latlng;
@@ -135,8 +159,8 @@ class AddStoryPage {
       this.#video.srcObject = this.#stream;
       this.#video.style.display = 'block';
       document.querySelector('#capture-photo-button').style.display = 'inline-block';
-      document.querySelector('#photo').style.display = 'none'; // Hide file input when camera is open
-      document.querySelector('#open-camera-button').style.display = 'none'; // Hide open camera button
+      document.querySelector('#photo').style.display = 'none';
+      document.querySelector('#open-camera-button').style.display = 'none';
     } catch (error) {
       alert('Could not access camera. Please ensure you have a camera and have granted permission.');
       console.error('Error accessing camera:', error);
@@ -150,7 +174,6 @@ class AddStoryPage {
     const context = canvas.getContext('2d');
     context.drawImage(this.#video, 0, 0, canvas.width, canvas.height);
 
-    // Convert canvas content to a Blob and then to a File
     canvas.toBlob((blob) => {
       const photoFile = new File([blob], `captured-photo-${Date.now()}.png`, { type: 'image/png' });
       const dataTransfer = new DataTransfer();
@@ -168,35 +191,8 @@ class AddStoryPage {
       this.#video.srcObject = null;
       this.#video.style.display = 'none';
       document.querySelector('#capture-photo-button').style.display = 'none';
-      document.querySelector('#photo').style.display = 'block'; // Show file input again
-      document.querySelector('#open-camera-button').style.display = 'inline-block'; // Show open camera button again
-    }
-  }
-
-  async #handleAddStory(asGuest) {
-    const description = document.querySelector('#description').value;
-    const photoInput = document.querySelector('#photo');
-    const photo = photoInput.files[0];
-    const lat = document.querySelector('#lat').value ? parseFloat(document.querySelector('#lat').value) : undefined;
-    const lon = document.querySelector('#lon').value ? parseFloat(document.querySelector('#lon').value) : undefined;
-
-    if (!description || !photo) {
-      alert('Please fill in description and upload or take a photo.');
-      return;
-    }
-
-    try {
-      if (asGuest) {
-        await addNewStoryGuest({ description, photo, lat, lon });
-        alert('Story added as guest successfully!');
-      } else {
-        await addNewStory({ description, photo, lat, lon });
-        alert('Story added successfully!');
-      }
-      this.#stopCameraStream(); // Ensure camera stream is stopped after submission
-      window.location.hash = '#/';
-    } catch (error) {
-      alert(`Failed to add story: ${error.message}`);
+      document.querySelector('#photo').style.display = 'block';
+      document.querySelector('#open-camera-button').style.display = 'inline-block';
     }
   }
 }

@@ -1,11 +1,15 @@
-import { getStoryDetail } from '../../data/api';
+// src/scripts/pages/stories/story-detail-page.js
+import * as api from '../../data/api';
 import { parseActivePathname } from '../../routes/url-parser';
 import { showFormattedDate } from '../../utils';
+import StoryDetailPresenter from './story-detail-presenter';
 import L from 'leaflet';
 
 class StoryDetailPage {
-  #story = null;
   #map = null;
+  #presenter;
+
+  constructor() {}
 
   async render() {
     return `
@@ -22,53 +26,59 @@ class StoryDetailPage {
   }
 
   async afterRender() {
+    this.#presenter = new StoryDetailPresenter({
+      view: this,
+      model: api,
+    });
+
     const { id } = parseActivePathname();
-
-    if (!id) {
-      this.#renderError('Story ID not found in URL.');
-      return;
-    }
-
-    try {
-      this.#story = await getStoryDetail(id);
-      this.#renderStoryDetail();
-      this.#initializeMapForDetail();
-    } catch (error) {
-      this.#renderError(`Failed to fetch story: ${error.message}`);
-    }
+    this.#presenter.getStoryDetail(id);
   }
 
-  #renderStoryDetail() {
-    if (!this.#story) {
-      this.#renderError('Story data not available.');
+  renderStoryDetail(story) {
+    if (!story) {
+      this.renderError('Story data not available.');
       return;
     }
 
-    document.querySelector('#story-title').textContent = this.#story.name;
-    document.querySelector('#story-owner').innerHTML = `<i class="fa-solid fa-user fa-fw"></i> Posted by: <strong>${this.#story.name}</strong>`;
-    document.querySelector('#story-date').innerHTML = `<i class="fa-solid fa-calendar-alt fa-fw"></i> On: ${showFormattedDate(this.#story.createdAt)}`;
-    document.querySelector('#story-photo').src = this.#story.photoUrl;
-    document.querySelector('#story-photo').alt = `Photo for story: ${this.#story.description}`;
-    document.querySelector('#story-description').textContent = this.#story.description;
+    document.querySelector('#story-title').textContent = story.name;
+    document.querySelector('#story-owner').innerHTML = `<i class="fa-solid fa-user fa-fw"></i> Posted by: <strong>${story.name}</strong>`;
+    document.querySelector('#story-date').innerHTML = `<i class="fa-solid fa-calendar-alt fa-fw"></i> On: ${showFormattedDate(story.createdAt)}`;
+    document.querySelector('#story-photo').src = story.photoUrl;
+    document.querySelector('#story-photo').alt = `Photo for story: ${story.description}`;
+    document.querySelector('#story-description').textContent = story.description;
 
-    if (this.#story.lat && this.#story.lon) {
-      document.querySelector('#story-location').innerHTML = `<i class="fa-solid fa-map-marker-alt fa-fw"></i> Location: Lat ${this.#story.lat}, Lon ${this.#story.lon}`;
+    if (story.lat && story.lon) {
+      document.querySelector('#story-location').innerHTML = `<i class="fa-solid fa-map-marker-alt fa-fw"></i> Location: Lat ${story.lat}, Lon ${story.lon}`;
       document.querySelector('#map-story-detail').style.display = 'block';
+      this.#initializeMapForDetail(story);
     } else {
       document.querySelector('#story-location').innerHTML = `<i class="fa-solid fa-location-slash fa-fw"></i> Location: Not provided`;
       document.querySelector('#map-story-detail').style.display = 'none';
     }
   }
 
-  #initializeMapForDetail() {
-    if (!this.#story || !this.#story.lat || !this.#story.lon) {
+  renderError(message) {
+    const mainContent = document.querySelector('#main-content');
+    if (mainContent) {
+      mainContent.innerHTML = `
+        <section class="container">
+          <h2>Error Loading Story</h2>
+          <p>${message}</p>
+          <a href="#/">Go back to Home</a>
+        </section>
+      `;
+    }
+  }
+
+  #initializeMapForDetail(story) {
+    if (!story || !story.lat || !story.lon) {
       return;
     }
 
-    const { lat, lon } = this.#story;
+    const { lat, lon } = story;
     const coordinates = L.latLng(lat, lon);
 
-    // 1. Definisikan beberapa tile layer yang berbeda
     const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
@@ -81,36 +91,28 @@ class StoryDetailPage {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     });
 
-    // 2. Buat objek yang berisi base maps
     const baseMaps = {
         "Streets": openStreetMap,
         "Topographic": openTopoMap,
         "Dark Mode": cartoDBDark
     };
 
-    // 3. Inisialisasi peta dengan layer default
     this.#map = L.map('map-story-detail', {
-        layers: [openStreetMap] // Atur layer default di sini
+        layers: [openStreetMap]
     }).setView(coordinates, 13);
 
-    // 4. Tambahkan layer control ke peta
     L.control.layers(baseMaps).addTo(this.#map);
 
     const marker = L.marker(coordinates).addTo(this.#map);
     
     marker.bindPopup(`Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`).openPopup();
 
-    this.#map.invalidateSize();
-  }
-
-  #renderError(message) {
-    document.querySelector('#main-content').innerHTML = `
-      <section class="container">
-        <h2>Error Loading Story</h2>
-        <p>${message}</p>
-        <a href="#/">Go back to Home</a>
-      </section>
-    `;
+    // Use a short timeout to ensure the map container is fully visible before invalidating size
+    setTimeout(() => {
+        if (this.#map) {
+            this.#map.invalidateSize();
+        }
+    }, 100);
   }
 }
 
